@@ -1,5 +1,7 @@
+// prisma/schema.prisma
+
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql" 
   url      = env("DATABASE_URL")
 }
 
@@ -7,8 +9,494 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// ============================================================================
+// USER MODEL
+// ============================================================================
+
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id        String     @id @default(cuid())
+  email     String     @unique
+  name      String?
+  password  String?    
+  
+  // User preferences
+  preferences UserPreferences?
+  
+  // Relations
+  projects  Project[]
+  chatSessions ChatSession[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
+
+model UserPreferences {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  theme     String   @default("light") // "light" or "dark"
+  units     String   @default("feet")  // "feet" or "meters"
+  language  String   @default("en")
+  
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================================
+// PROJECT MODEL (Building/Floor Plan Project)
+// ============================================================================
+
+model Project {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Project meta
+  title     String
+  description String?
+  
+  // Building configuration
+  buildingType  String  @default("residential") // "residential", "commercial", "mixed"
+  totalFloors   Int     @default(1)
+  activeFloorNumber Int @default(0) // Which floor user is currently editing
+  
+  // Relations
+  floors    Floor[]
+  plotConfiguration PlotConfiguration?
+  buildingSummary   BuildingSummary?
+  chatSessions      ChatSession[]
+  
+  // Project status
+  status    String  @default("draft") // "draft", "approved", "archived"
+  isPublic  Boolean @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+}
+
+// ============================================================================
+// PLOT CONFIGURATION MODEL
+// ============================================================================
+
+model PlotConfiguration {
+  id        String   @id @default(cuid())
+  projectId String   @unique
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  // Plot shape: "rectangle", "square", "l-shape", "triangle", "custom"
+  shapeType String   @default("rectangle")
+  
+  // Basic dimensions (for standard shapes)
+  width     Float    // in feet or meters
+  height    Float    // in feet or meters
+  
+  // For L-shaped plots: second rectangle dimensions
+  secondWidth  Float?
+  secondHeight Float?
+  
+  // Calculated automatically
+  totalArea Float   // calculated
+  
+  // For custom shapes: array of coordinate points
+  customPoints Json? // [{"x": 0, "y": 0}, {"x": 30, "y": 0}, ...]
+  
+  // Plot characteristics
+  northFacing Boolean @default(true)
+  cornerPlot  Boolean @default(false)
+  slopedPlot  Boolean @default(false)
+  obstacles   String? // "tree", "well", "structure" etc
+  
+  // Image upload (for canvas/upload feature - future)
+  plotImageUrl String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================================
+// FLOOR MODEL (Each floor of building)
+// ============================================================================
+
+model Floor {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  // Floor identification
+  floorNumber   Int     // 0 = Ground, 1 = First, etc.
+  floorName     String  // "Ground Floor", "First Floor", etc.
+  floorType     String  @default("middle") // "ground", "middle", "top"
+  
+  // Current state
+  currentVersionId String? // Points to latest version
+  
+  // Relations
+  versions      FloorVersion[]
+  requirements  Requirements?
+  chatHistory   ChatMessage[]
+  rooms         Room[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([projectId, floorNumber]) // Only one floor number per project
+  @@index([projectId])
+  @@index([floorNumber])
+}
+
+// ============================================================================
+// FLOOR VERSION MODEL (Version history for each floor)
+// ============================================================================
+
+model FloorVersion {
+  id        String   @id @default(cuid())
+  floorId   String
+  floor     Floor    @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  
+  // Version identification
+  versionId String   // e.g., "F0_v1", "F0_v2"
+  versionNumber Int
+  
+  // What changed
+  changeLog String
+  changeType String  @default("initial") // "initial", "manual_edit", "ai_suggestion", "revert"
+  
+  // Snapshot of data at this version
+  requirements      Requirements?
+  floorPlan         FloorPlan?
+  costEstimate      CostEstimate?
+  
+  // AI & User context
+  metadata          VersionMetadata?
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([floorId, versionId])
+  @@index([floorId])
+  @@index([versionNumber])
+}
+
+model VersionMetadata {
+  id        String   @id @default(cuid())
+  versionId String   @unique
+  version   FloorVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  
+  createdBy String   @default("user") // "user", "claude", "system"
+  userMessage String?
+  aiExplanation String?
+  
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================================
+// REQUIREMENTS MODEL (What user wants in floor)
+// ============================================================================
+
+model Requirements {
+  id        String   @id @default(cuid())
+  
+  // Relations - can belong to Floor or FloorVersion
+  floorId   String?  @unique
+  floor     Floor?   @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  
+  versionId String?  @unique
+  version   FloorVersion? @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  
+  // Basic requirements
+  bedrooms      Int     @default(0)
+  bathrooms     Float   @default(0)
+  kitchen       Boolean @default(true)
+  livingRoom    Boolean @default(true)
+  
+  // Dimensions from plot
+  plotWidth     Float   // in feet
+  plotHeight    Float   // in feet
+  totalArea     Float   // calculated or provided
+  budget        Float?
+  
+  // Room types included
+  roomTypes     String[]  // ["bedroom", "kitchen", "bathroom", ...]
+  roomCount     Int
+  
+  // Special requirements
+  specialRooms  String[]  // ["homeOffice", "storage", "laundry", "garage", ...]
+  constraints   String[]  // ["northFacing", "cornerPlot", "slopedPlot", ...]
+  accessibility Boolean @default(false)
+  preferredLayout String? // "open" or "compartmentalized"
+  
+  // Additional notes
+  notes         String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================================
+// FLOOR PLAN MODEL (SVG and room data)
+// ============================================================================
+
+model FloorPlan {
+  id        String   @id @default(cuid())
+  
+  // Relations
+  versionId String   @unique
+  version   FloorVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  
+  // Plot dimensions
+  plotWidth   Float
+  plotHeight  Float
+  totalArea   Float
+  utilization Float @default(0) // percentage of plot used
+  
+  // Rooms data (JSON because rooms are complex nested objects)
+  rooms     Json      // Array of rooms: [{ id, type, width, height, x, y, color, doors, windows }]
+  
+  // Generated SVG code
+  svgCode   String    @db.Text // Large text field for SVG
+  
+  // Metadata
+  generatedAt DateTime
+  updatedAt DateTime @updatedAt
+}
+
+model Room {
+  id        String   @id @default(cuid())
+  floorId   String   // Which floor this room belongs to
+  floor     Floor     @relation(fields: [floorId] ,references: [id])
+  // Room identification
+  roomId    String   // e.g., "bedroom_1", "kitchen"
+  type      String   // "bedroom", "bathroom", "kitchen", etc.
+  
+  // Dimensions
+  area      Float
+  width     Float
+  height    Float
+  
+  // Position on floor
+  x         Float
+  y         Float
+  
+  // Display
+  color     String   @default("#E8F4F8")
+  
+  // Doors and windows (JSON)
+  doors     Json?    // [{ id, position, x, y }]
+  windows   Json?    // [{ id, position, count }]
+  
+  // Relationships
+  adjacent  String[] // IDs of adjacent rooms
+  priority  Int
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([floorId])
+}
+
+// ============================================================================
+// COST ESTIMATE MODEL
+// ============================================================================
+
+model CostEstimate {
+  id        String   @id @default(cuid())
+  
+  // Relations
+  versionId String   @unique
+  version   FloorVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  
+  // Costs
+  materialCost   Float
+  laborCost      Float
+  contingency    Float @default(0)
+  totalCost      Float
+  costPerSqft    Float
+  
+  // Breakdown by category
+  materialBreakdown Json? // { flooring, painting, plumbing, electrical, other }
+  
+  // Timeline
+  timeline      Json? // { duration: number, phases: [...] }
+  
+  // Assumptions (for reference)
+  assumptions   String?
+  location      String? // City/region for cost calculation
+  quality       String @default("standard") // "basic", "standard", "premium"
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================================
+// BUILDING SUMMARY MODEL (Aggregate data across all floors)
+// ============================================================================
+
+model BuildingSummary {
+  id        String   @id @default(cuid())
+  projectId String   @unique
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  // Aggregate data
+  totalBuildingArea  Float
+  totalBuildingCost  Float
+  allRoomTypes       String[] // All room types across all floors
+  
+  // Breakdown by floor (JSON)
+  floorBreakdown Json // [{ floorNumber, floorName, area, cost, roomCount }]
+  
+  // Summary stats
+  averageCostPerSqft Float?
+  estimatedTimeline  Int? // Total days
+  
+  // Last updated
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================================
+// CHAT SESSION MODEL (For conversational UI)
+// ============================================================================
+
+model ChatSession {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  // Chat messages in this session
+  messages  ChatMessage[]
+  
+  // Session state
+  extractedRequirements Json? // Captured requirements from chat
+  status    String  @default("active") // "active", "completed", "archived"
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([projectId])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  // Floor reference (if chat is about specific floor)
+  floorId   String?
+  floor     Floor? @relation(fields: [floorId], references: [id], onDelete: SetNull)
+  
+  // Message content
+  role      String  // "user" or "assistant"
+  content   String  @db.Text
+  
+  // Which version was this chat related to
+  versionGenerated String?
+  
+  createdAt DateTime @default(now())
+  
+  @@index([sessionId])
+  @@index([floorId])
+}
+
+// ============================================================================
+// PROJECT SHARING MODEL (For collaboration - future)
+// ============================================================================
+
+// model ProjectShare {
+//   id        String   @id @default(cuid())
+//   projectId String
+//   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+//   // Share details
+//   shareCode String   @unique @default(cuid())
+//   email     String?  // If shared with specific person
+  
+//   // Permissions
+//   canView   Boolean @default(true)
+//   canEdit   Boolean @default(false)
+//   canExport Boolean @default(false)
+  
+//   expiresAt DateTime?
+  
+//   createdAt DateTime @default(now())
+  
+//   @@index([projectId])
+//   @@index([shareCode])
+// }
+
+// // ============================================================================
+// // EXPORT HISTORY MODEL (Track exported files)
+// // ============================================================================
+
+// model ExportHistory {
+//   id        String   @id @default(cuid())
+//   projectId String
+//   floorId   String?
+//   versionId String?
+  
+//   // Export details
+//   format    String  // "pdf", "png", "svg", "dwg", "json"
+//   filePath  String?
+//   fileUrl   String?
+  
+//   // Status
+//   status    String  @default("processing") // "processing", "completed", "failed"
+  
+//   createdAt DateTime @default(now())
+//   expiresAt DateTime? // When to delete file
+  
+//   @@index([projectId])
+// }
+
+// // ============================================================================
+// // TEMPLATE MODEL (Pre-designed floor templates - future)
+// // ============================================================================
+
+// model FloorTemplate {
+//   id        String   @id @default(cuid())
+  
+//   name      String
+//   description String?
+  
+//   // Template data
+//   requirements  Json // Default requirements
+//   floorPlan     Json // Template SVG
+//   costEstimate  Json // Estimated cost
+  
+//   // Category
+//   category  String // "2BHK", "3BHK", "office", "clinic", etc.
+//   bedrooms  Int
+//   bathrooms Float
+  
+//   // Metadata
+//   thumbnail String? // URL to template image
+//   isPublic  Boolean @default(true)
+  
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
+
+// // ============================================================================
+// // AUDIT LOG (For tracking changes - optional)
+// // ============================================================================
+
+// model AuditLog {
+//   id        String   @id @default(cuid())
+//   userId    String
+//   projectId String?
+//   floorId   String?
+  
+//   action    String  // "create_project", "update_floor", "generate_version", etc.
+//   details   Json?
+  
+//   createdAt DateTime @default(now())
+  
+//   @@index([userId])
+//   @@index([projectId])
+//   @@index([createdAt])
+// }
