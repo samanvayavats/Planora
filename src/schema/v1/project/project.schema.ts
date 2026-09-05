@@ -11,3 +11,21 @@ export const ProjectSchema = z.object({
 });
 
 export type ProjectType = z.infer<typeof ProjectSchema>;
+
+const PlotConfigurationSchema = z.object({
+  projectId: z.string(),
+  shapeType: z.string(),
+  width: z.number(),
+  height: z.number(),
+  secondWidth: z.number().optional(),
+  secondHeight: z.number().optional(),
+  totalArea: z.number(),
+  customPoints: z.json().optional(),
+  northFacing: z.boolean(),
+  cornerPlot: z.boolean(),
+  slopedPlot: z.boolean(),
+  obstacles: z.string().optional(),
+  plotImageUrl: z.string().optional(),
+});
+
+export type PlotConfigurationType = z.infer<typeof PlotConfigurationSchema>;
