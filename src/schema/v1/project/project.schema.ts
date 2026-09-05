@@ -12,7 +12,7 @@ export const ProjectSchema = z.object({
 
 export type ProjectType = z.infer<typeof ProjectSchema>;
 
-const PlotConfigurationSchema = z.object({
+export const PlotConfigurationSchema = z.object({
   projectId: z.string(),
   shapeType: z.string(),
   width: z.number(),
@@ -29,3 +29,12 @@ const PlotConfigurationSchema = z.object({
 });
 
 export type PlotConfigurationType = z.infer<typeof PlotConfigurationSchema>;
+
+export const PlotConfigurationSchemaPlotConfigurationSchemaCombined = z.intersection(
+  ProjectSchema,
+  PlotConfigurationSchema,
+);
+
+export type PlotConfigurationTypePlotConfigurationTypeCombined = z.infer<
+  typeof PlotConfigurationSchemaPlotConfigurationSchemaCombined
+>;
