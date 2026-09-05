@@ -13,7 +13,7 @@ export const ProjectSchema = z.object({
 export type ProjectType = z.infer<typeof ProjectSchema>;
 
 export const PlotConfigurationSchema = z.object({
-  projectId: z.string(),
+  projectId: z.string().optional(),
   shapeType: z.string(),
   width: z.number(),
   height: z.number(),
