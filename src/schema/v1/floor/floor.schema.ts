@@ -1,4 +1,5 @@
 import { cuid2, z } from "zod";
+import { RequirementsSchema } from "../requirements/requirements.schema";
 
 export const FloorSchema = z.object({
   projectId: z.string(),
@@ -18,3 +19,14 @@ export const FloorVersionSchema = z.object({
 });
 
 export type FloorVersionType = z.infer<typeof FloorVersionSchema>;
+
+export const FloorAndRequirementsSchema = z.intersection(FloorSchema, RequirementsSchema);
+export const FloorAndRequirementsFloorVersionSchema = z.intersection(
+  FloorAndRequirementsSchema,
+  FloorVersionSchema,
+);
+
+export type FloorAndRequirementsType = z.infer<typeof FloorAndRequirementsSchema>;
+export type FloorAndRequirementsFloorVersionType = z.infer<
+  typeof FloorAndRequirementsFloorVersionSchema
+>;
