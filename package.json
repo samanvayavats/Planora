@@ -12,6 +12,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@google/genai": "^2.21.0",
     "bcryptjs": "^3.0.3",
     "next": "16.3.4",
     "react": "19.2.8",
