@@ -48,4 +48,4 @@ export const roomSchema = z.object({
 });
 
 // 3. Extract the TypeScript Type from the schema
-export type RoomInput = z.infer<typeof roomSchema>;
+export type RoomType = z.infer<typeof roomSchema>;
