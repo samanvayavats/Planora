@@ -30,3 +30,11 @@ export type FloorAndRequirementsType = z.infer<typeof FloorAndRequirementsSchema
 export type FloorAndRequirementsFloorVersionType = z.infer<
   typeof FloorAndRequirementsFloorVersionSchema
 >;
+
+export const GetDraftSchema = z.object({
+  projectId: z.string(),
+  floorId: z.string(),
+  versionId: z.string(),
+});
+
+export type GetDraftType = z.infer<typeof GetDraftSchema>;
