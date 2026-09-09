@@ -38,3 +38,14 @@ export const GetDraftSchema = z.object({
 });
 
 export type GetDraftType = z.infer<typeof GetDraftSchema>;
+
+export const FloorPlanSchema = z.object({
+  versionId: z.string(),
+  plotWidth: z.number(),
+  plotHeight: z.number(),
+  totalArea: z.number(),
+  utilization: z.number(),
+  svg: z.string(),
+});
+
+export type FloorPlanType = z.infer<typeof FloorPlanSchema>;
