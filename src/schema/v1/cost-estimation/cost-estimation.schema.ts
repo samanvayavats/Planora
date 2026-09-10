@@ -20,7 +20,7 @@ const timelineSchema = z.object({
 });
 
 // 2. Define the main CostEstimate Validation Schema
-export const costEstimateSchema = z.object({
+export const CostEstimateSchema = z.object({
   versionId: z.string(),
 
   // Costs
@@ -43,4 +43,4 @@ export const costEstimateSchema = z.object({
 });
 
 // 3. Extract the TypeScript Type
-export type CostEstimateType = z.infer<typeof costEstimateSchema>;
+export type CostEstimateType = z.infer<typeof CostEstimateSchema>;
