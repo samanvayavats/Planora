@@ -45,7 +45,7 @@ export const FloorPlanSchema = z.object({
   plotHeight: z.number(),
   totalArea: z.number(),
   utilization: z.number(),
-  svg: z.string(),
+  svgCode: z.string(),
 });
 
 export type FloorPlanType = z.infer<typeof FloorPlanSchema>;
