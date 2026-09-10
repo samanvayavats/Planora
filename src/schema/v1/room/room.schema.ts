@@ -14,7 +14,7 @@ const windowSchema = z.object({
   count: z.number().int().positive(),
 });
 
-export const roomSchema = z.object({
+export const RoomSchema = z.object({
   floorId: z.string(),
   // Room identification
   roomId: z.string(),
@@ -48,4 +48,4 @@ export const roomSchema = z.object({
 });
 
 // 3. Extract the TypeScript Type from the schema
-export type RoomType = z.infer<typeof roomSchema>;
+export type RoomType = z.infer<typeof RoomSchema>;
