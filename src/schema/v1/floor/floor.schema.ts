@@ -7,6 +7,8 @@ export const FloorSchema = z.object({
   floorName: z.string().default("second floor"),
   floorType: z.string().default("middle"),
   currentVersionId: z.string(),
+  asyncJobType: z.string(),
+  asyncJobStatus: z.enum(["PENDING", "PROCESSING", "COMPLETED", "FAILED"]).default("PENDING"),
 });
 
 export type FloorType = z.infer<typeof FloorSchema>;
