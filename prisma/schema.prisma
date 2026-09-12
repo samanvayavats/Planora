@@ -133,6 +133,7 @@ model Floor {
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   // redis queue 
+  asyncJobId         Int?
   asyncJobType         String      // "floor generation"
   asyncJobStatus       TaskStatus  @default(PENDING)
   
