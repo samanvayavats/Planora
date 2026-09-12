@@ -5,6 +5,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,6 +14,12 @@ generator client {
 // USER MODEL
 // ============================================================================
 
+enum TaskStatus {
+  PENDING     
+  PROCESSING   
+  COMPLETED   
+  FAILED       
+}
 model User {
   id        String     @id @default(cuid())
   email     String     @unique
@@ -124,6 +131,10 @@ model Floor {
   id        String   @id @default(cuid())
   projectId String
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // redis queue 
+  asyncJobType         String      // "floor generation"
+  asyncJobStatus       TaskStatus  @default(PENDING)
   
   // Floor identification
   floorNumber   Int     // 0 = Ground, 1 = First, etc.
