@@ -39,3 +39,38 @@ export async function createProjectPlotConfiguration(
 
   return result;
 }
+
+export async function getAllFloorsOfTheParticularProject(
+  projectId: string,
+  page: number,
+  pageSize: number,
+) {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: {
+      id: true,
+      title: true,
+      floors: {
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          floorName: true,
+          rooms: true,
+          versions: {
+            select: {
+              floorPlan: true,
+              costEstimate: true,
+            },
+          },
+        },
+      },
+      _count: {
+        select: { floors: true },
+      },
+    },
+  });
+
+  return project;
+}
