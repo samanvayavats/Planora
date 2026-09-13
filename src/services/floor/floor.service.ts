@@ -201,3 +201,20 @@ export async function storeTheAiResponseInDataBase(aiData: AiPayloadDataType, id
 
   return floorGenerated;
 }
+
+export async function getParticularFloor(floorId: string) {
+  const floor = await prisma.floor.findUnique({
+    where: { id: floorId },
+    select: {
+      rooms: true,
+      versions: {
+        select: {
+          floorPlan: true,
+          costEstimate: true,
+        },
+      },
+    },
+  });
+
+  return floor;
+}
