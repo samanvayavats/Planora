@@ -7,6 +7,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        planaoraButton:
+          " inline-flex items-center justify-center space-x-2 <rounded-b-m></rounded-b-m> bg-gradient-to-r from-cyan-500 via-teal-500 to-blue-600  text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 transition hover:scale-[1.02]",
         default: "bg-primary text-primary-foreground hover:bg-primary/80",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
