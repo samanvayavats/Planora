@@ -6,6 +6,16 @@ export async function registerUser(user: UserRegisterType) {
   const { name, email, password } = user;
   const hashPassword = await bcrypt.hash(password, genSaltSync(10));
 
+  const isUserExits = await prisma.user.findUnique({
+    where: {
+      email: email,
+    },
+  });
+
+  if (isUserExits) {
+    throw new Error("User exits with this email");
+  }
+
   const userRegister = await prisma.user.create({
     data: {
       name: name,
