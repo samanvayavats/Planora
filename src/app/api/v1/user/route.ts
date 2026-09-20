@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     if (!userValidation.success) {
       return NextResponse.json(
         {
-          message: "Validation failed",
+          message: "Validation failed , Please enter the right inputs",
           errors: userValidation.error.flatten(),
         },
         { status: 400 },
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json(
         {
-          message: "Registration Failed",
+          message: "Registration Failed , try again later",
         },
         { status: 500 },
       );
@@ -33,10 +33,10 @@ export async function POST(request: NextRequest) {
       message: "User Registered  Successfully",
       data: user,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     return NextResponse.json(
       {
-        message: "Registration Failed",
+        message: ` Registration Failed ${error instanceof Error ? error.message : ""}`,
       },
       { status: 500 },
     );
