@@ -3,7 +3,8 @@ import { z } from "zod";
 export const ProjectSchema = z.object({
   userId: z.string(),
   title: z.string(),
-  description: z.enum(["residential", "commercial", "mixed"]),
+  description: z.string(),
+  buildingType: z.enum(["residential", "commercial", "mixed"]),
   totalFloors: z.number(),
   activeFloorNumber: z.number(),
   status: z.enum(["draft", "approved", "archived"]),
