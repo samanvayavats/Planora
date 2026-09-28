@@ -64,6 +64,9 @@ export const DEMO_PRESETS: ProjectPlotFormData[] = [
     obstacles: "Municipal water main easement along western fence.",
     plotImageUrl: "",
   },
+];
+
+export const DEMO_RESET_FOR_PROJECT: ProjectPlotFormData[] = [
   {
     userId: "",
     title: "",
