@@ -74,3 +74,17 @@ export async function getAllFloorsOfTheParticularProject(
 
   return project;
 }
+
+export async function getProjectTotalFloors(projectId: string) {
+  const project = await prisma.project.findUnique({
+    where: {
+      id: projectId,
+    },
+  });
+
+  if (!project) {
+    throw new Error("project not found");
+  }
+
+  return project.totalFloors;
+}
