@@ -6,7 +6,7 @@ import { useForm, useWatch, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import { DEMO_PRESETS } from "@/lib/sample-data/projectconfig.sample-data";
+import { DEMO_PRESETS, DEMO_RESET_FOR_PROJECT } from "@/lib/sample-data/projectconfig.sample-data";
 import {
   Building2,
   Compass,
@@ -17,7 +17,7 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-
+import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import PlotShapeDrawerModal, { Point } from "./plotShapeDrawerModal";
 import { PlotConfigurationSchemaPlotConfigurationSchemaCombined } from "@/schema/v1/project/project.schema";
@@ -46,7 +46,6 @@ export interface ProjectPlotFormData {
 }
 
 interface ProjectConfigFormProps {
-  // 👈 Fix 1: Removed `any`
   onSave?: (data: ProjectPlotFormData) => void;
   onCancel?: () => void;
   initialData?: Partial<ProjectPlotFormData>;
@@ -62,7 +61,6 @@ export default function ProjectConfigForm({
   const [presetIndex, setPresetIndex] = useState(0);
   const [serverError, setServerError] = useState<string | null>(null);
 
-  // 👈 Fix 2: Removed unused `status`
   const { data: session } = useSession();
 
   const {
@@ -73,7 +71,6 @@ export default function ProjectConfigForm({
     formState: { errors, isSubmitting },
     reset,
   } = useForm<ProjectPlotFormData>({
-    // 👈 Fix 3: Uses `unknown` casting to avoid `no-explicit-any` while preventing ts(2589)
     resolver: (zodResolver as unknown as (schema: unknown) => Resolver<ProjectPlotFormData>)(
       PlotConfigurationSchemaPlotConfigurationSchemaCombined,
     ),
@@ -141,9 +138,9 @@ export default function ProjectConfigForm({
     reset(selectedPreset);
   };
 
-  // 👈 Fix 4: Removed unused `selectedPreset` variable
   const handleReset = () => {
-    reset();
+    if (!DEMO_RESET_FOR_PROJECT || DEMO_RESET_FOR_PROJECT.length === 0) return;
+    reset(DEMO_RESET_FOR_PROJECT[0]);
   };
 
   const handleApplyCustomShape = (result: { points: Point[]; area: number; perimeter: number }) => {
@@ -162,13 +159,17 @@ export default function ProjectConfigForm({
     setServerError(null);
     try {
       const res = await axios.post("/api/v1/project", data);
-
       if (onSave) {
         await onSave(res.data);
       }
+      toast.add({
+        type: "success",
+        title: "Blueprint Initialized",
+        description: "Plot boundaries and project specs saved. Ready for floor plan zoning.",
+      });
 
-      if (res.data?.id || res.data?.projectId) {
-        router.push(`/projects/${res.data.id || res.data.projectId}`);
+      if (res.data.data?.id || res.data.data?.projectId) {
+        router.push(`/create-floor/${res.data.data.projectId}`);
       } else {
         router.refresh();
       }
@@ -179,6 +180,11 @@ export default function ProjectConfigForm({
           err.response?.data?.error ||
           (typeof err.response?.data === "string" ? err.response.data : null);
         setServerError(serverMessage || err.message || "Failed to create project.");
+        toast.add({
+          type: "error",
+          title: "Blueprint Initialization Failed",
+          description: err.message || "Failed to create project.",
+        });
       } else if (err instanceof Error) {
         setServerError(err.message);
       } else {
@@ -506,7 +512,7 @@ export default function ProjectConfigForm({
             type="submit"
             disabled={isSubmitting}
             variant="planaoraButton"
-            className="p-5 min-w-[200px]"
+            className="p-5 min-w-50"
           >
             {isSubmitting ? (
               <>
