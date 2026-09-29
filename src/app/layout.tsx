@@ -5,6 +5,7 @@ import React from "react";
 import { Provider } from "./provider";
 import Navbar from "@/components/navbar/navbar";
 import Footer from "@/components/footer/footer";
+import { Toaster } from "@/components/ui/toast";
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="flex-1 flex flex-col justify-center items-center px-2 py-2 relative overflow-hidden">
             {children}
           </main>
+          <Toaster />
           <Footer />
         </Provider>
       </body>
