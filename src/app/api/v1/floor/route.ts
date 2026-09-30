@@ -35,25 +35,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const data = Object.assign({}, floor, floorVersion, requirements);
-
-    if (!data) {
-      return NextResponse.json(
-        {
-          message: "floor requirements failed",
-        },
-        { status: 500 },
-      );
-    }
-
     return NextResponse.json(
       {
         message: "floor requirements passed ",
-        data: data,
+        data: {
+          floor,
+          floorVersion,
+          requirements,
+        },
       },
       { status: 200 },
     );
   } catch (error) {
+    console.error("error at the time of creating the floor", error);
     return NextResponse.json(
       {
         message: "floor requirements failed",
