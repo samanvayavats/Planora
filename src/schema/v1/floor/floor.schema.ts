@@ -14,7 +14,7 @@ export const FloorSchema = z.object({
 export type FloorType = z.infer<typeof FloorSchema>;
 
 export const FloorVersionSchema = z.object({
-  versionId: z.cuid2(),
+  versionId: z.string().min(1, "versionId is required"),
   versionNumber: z.number().default(0),
   changeLog: z.string().default("no changes ,first version"),
   changeType: z.string().default("initial"),
