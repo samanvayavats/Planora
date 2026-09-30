@@ -45,7 +45,7 @@ export async function createFloorRequirementsAndFloorVerions(
         bedrooms: data.bedrooms,
         bathrooms: data.bathrooms,
         kitchen: data.kitchen,
-        livingRoom: data.kitchen,
+        livingRoom: data.livingRoom,
         plotWidth: data.plotWidth,
         plotHeight: data.plotHeight,
         totalArea: data.totalArea,
