@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         message: "SVG generated",
-        data: jobId,
+        data: { jobId: jobId },
       },
       { status: 200 },
     );
