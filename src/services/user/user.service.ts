@@ -31,3 +31,16 @@ export async function registerUser(user: UserRegisterType) {
 
   return userRegister;
 }
+
+export async function getAlltheProjectForTheUser(userId: string) {
+  const projects = await prisma.project.findMany({
+    where: {
+      userId: userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return projects;
+}
