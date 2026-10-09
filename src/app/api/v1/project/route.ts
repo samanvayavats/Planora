@@ -66,8 +66,6 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const projectId = searchParams.get("projectId");
-    const page = Number(searchParams.get("page")) || 1;
-    const pageSize = Number(searchParams.get("pageSize")) || 10;
 
     if (!projectId) {
       return NextResponse.json(
@@ -78,7 +76,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const project = await getAllFloorsOfTheParticularProject(projectId, page, pageSize);
+    const project = await getAllFloorsOfTheParticularProject(projectId);
 
     if (!project) {
       return NextResponse.json(
@@ -90,9 +88,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      project: { id: project.id, name: project.title },
-      floors: project.floors,
-      totalFloors: project._count.floors,
+      data: project,
     });
   } catch (error) {
     console.error("project not found ", error);
