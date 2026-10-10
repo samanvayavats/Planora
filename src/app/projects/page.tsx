@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import axios from "axios";
 import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UserProjectsAccordion from "@/components/project/userProjectsAccordion";
+import NotAuthenticated from "@/components/ui/not-authenticated";
 
 export interface UserProjectItem {
   id: string;
@@ -16,6 +18,7 @@ export interface UserApiResponse {
 }
 
 export default function Page() {
+  const { data: session, status } = useSession();
   const [projects, setProjects] = useState<UserProjectItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,25 +50,51 @@ export default function Page() {
   useEffect(() => {
     let isActive = true;
 
-    requestUserProjects()
-      .then((userProjects) => {
-        if (isActive) setProjects(userProjects);
-      })
-      .catch((err: unknown) => {
-        console.error("❌ Failed to fetch user projects:", err);
-        const message =
-          (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-          "Could not retrieve user projects.";
-        if (isActive) setError(message);
-      })
-      .finally(() => {
-        if (isActive) setIsLoading(false);
-      });
+    if (status === "authenticated") {
+      requestUserProjects()
+        .then((userProjects) => {
+          if (isActive) setProjects(userProjects);
+        })
+        .catch((err: unknown) => {
+          console.error("❌ Failed to fetch user projects:", err);
+          const message =
+            (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+            "Could not retrieve user projects.";
+          if (isActive) setError(message);
+        })
+        .finally(() => {
+          if (isActive) setIsLoading(false);
+        });
+    }
 
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [status]);
+
+  // Session Loading
+  if (status === "loading") {
+    return (
+      <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6">
+        <div className="text-center space-y-3">
+          <Loader2 className="h-8 w-8 text-emerald-400 animate-spin mx-auto" />
+          <p className="text-xs text-slate-400 font-mono">Authenticating Planora session...</p>
+        </div>
+      </main>
+    );
+  }
+
+  // Not Authenticated
+  if (status === "unauthenticated" || !session) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+        <NotAuthenticated
+          title="Project Dashboard Locked"
+          description="You must be signed in to access your architectural projects, floor configurations, and vector blueprints."
+        />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12">
