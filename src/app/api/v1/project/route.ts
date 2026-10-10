@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { PlotConfigurationSchemaPlotConfigurationSchemaCombined } from "@/schema/v1/project/project.schema";
 import {
   createProjectPlotConfiguration,
@@ -7,6 +9,16 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          message: "Unauthorized. Please sign in to configure a project.",
+        },
+        { status: 401 },
+      );
+    }
+
     const combined = await request.json();
     const plotConfigAndProjectValidation =
       PlotConfigurationSchemaPlotConfigurationSchemaCombined.safeParse(combined);
@@ -21,9 +33,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { project, plotConfig } = await createProjectPlotConfiguration(
-      plotConfigAndProjectValidation.data,
-    );
+    const projectPayload = {
+      ...plotConfigAndProjectValidation.data,
+      userId: session.user.id,
+    };
+
+    const { project, plotConfig } = await createProjectPlotConfiguration(projectPayload);
 
     if (!project || !plotConfig) {
       return NextResponse.json(
@@ -64,6 +79,16 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          message: "Unauthorized. Please sign in to view project details.",
+        },
+        { status: 401 },
+      );
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const projectId = searchParams.get("projectId");
 
