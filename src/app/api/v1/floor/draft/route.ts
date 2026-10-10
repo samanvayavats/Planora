@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          message: "Unauthorized. Please sign in to check draft status.",
+        },
+        { status: 401 },
+      );
+    }
+
     // 1. Get floorId
     const floorId = request.nextUrl.searchParams.get("floorId");
 
