@@ -5,10 +5,43 @@
 
 ---
 
+## 📸 Application Showcase & Visual Tour
+
+<div align="center">
+
+### 1. Studio Landing & Architectural Workspace
+
+![Planora Home](./public/assets/home.jpg)
+
+</div>
+
+<br />
+
+|          2. Project Dashboard & Accordion Overview          |  3. Interactive CAD Vector Blueprint (`FloorPlanSvgBox`)  |
+| :---------------------------------------------------------: | :-------------------------------------------------------: |
+| ![Project Dashboard](./public/assets/project-dashboard.jpg) | ![CAD Canvas & Vector Blueprint](./public/assets/cad.jpg) |
+|    _Hierarchical project accordions & floor navigation_     |  _1:1 Vector SVG rendering with zoom, pan & CAD export_   |
+
+<br />
+
+|           4. Project & Plot Boundary Configuration           |       5. Floor Requirements & Living Directives Form        |
+| :----------------------------------------------------------: | :---------------------------------------------------------: |
+|  ![Project Config](./public/assets/project-config-form.jpg)  | ![Floor Config Form](./public/assets/floor-config-form.jpg) |
+| _Dimensions (50'×80'), orientation, corner plot & easements_ | _Room partitioning, setbacks, budget & living constraints_  |
+
+<br />
+
+|             6. How It Works Pipeline              |               7. About Planora Architecture               |
+| :-----------------------------------------------: | :-------------------------------------------------------: |
+| ![How It Works](./public/assets/how-it-works.jpg) |      ![About Planora](./public/assets/aboutjpg.jpg)       |
+|      _4-stage autonomous CAD & BOQ pipeline_      | _First-principles architectural AI & feasibility mission_ |
+
+---
+
 ## 🌟 Key Highlights & Engineering Features
 
 - **Autonomous Spatial CAD Synthesis**: Transforms plain text room requirements (bedrooms, bathrooms, foyer, kitchen) into bounded, geometric 2D vector layouts with exact $(X, Y, W, H)$ coordinates.
-- **Topological Adjacency & Boundary Solving**: Graph-based room connectivity solver enforcing door alignments, window daylight paths, and hard legal setbacks (e.g. municipal water main easements, Texas zoning setbacks).
+- **Topological Adjacency & Boundary Solving**: Graph-based room connectivity solver enforcing door alignments, window daylight paths, and hard legal setbacks (e.g., municipal water main easements, Texas zoning setbacks).
 - **Asynchronous Redis Worker Pipeline**: Decouples heavy generative AI spatial computations into background TSX workers using Redis queues, ensuring zero HTTP thread blocking and sub-3s polling resolution.
 - **Deterministic 1:1 Vector SVG Engine**: Interactive CAD canvas (`FloorPlanSvgBox`) featuring real-time scaling ($0.5\times - 2.5\times$), fullscreen inspection, and 1-click raw SVG vector file export for AutoCAD/BIM interoperability.
 - **Bill of Quantities (BOQ) & Financial Modeling**: Computes itemized material breakdowns (Plumbing, Electrical, Flooring, Painting, Finishes), labor contracting costs, contingency reserves, and cost-per-sq.ft. metrics.
@@ -27,21 +60,21 @@ flowchart TD
     RedisQueue["Redis Background Queue (get-draft)"]
     Worker["Standalone TSX Worker"]
     Gemini["Google Gemini AI Spatial Engine"]
-    DB[(PostgreSQL via Prisma ORM)]
+    DB[("PostgreSQL Database via Prisma")]
     SVGCanvas["Interactive CAD Canvas (FloorPlanSvgBox)"]
 
-    Client -->|1. Authenticate| Auth
-    Client -->|2. Save Plot & Requirements| API
-    API -->|3. Persist Specs| DB
-    API -->|4. Push Draft Job| RedisQueue
-    RedisQueue -->|5. Ingest Job| Worker
-    Worker -->|6. Solve Topology & Constraints| Gemini
-    Gemini -->|7. Return 2D SVG & BOQ Specs| Worker
-    Worker -->|8. Update Status COMPLETED| DB
-    Client -->|9. Poll Status (/api/v1/floor/draft)| API
-    API -->|10. Read Active Version| DB
-    DB -->|11. Return SVG & Cost Curves| Client
-    Client -->|12. Render Vector Blueprint| SVGCanvas
+    Client -->|"1. Authenticate"| Auth
+    Client -->|"2. Save Plot & Requirements"| API
+    API -->|"3. Persist Specs"| DB
+    API -->|"4. Push Draft Job"| RedisQueue
+    RedisQueue -->|"5. Ingest Job"| Worker
+    Worker -->|"6. Solve Topology & Constraints"| Gemini
+    Gemini -->|"7. Return 2D SVG & BOQ Specs"| Worker
+    Worker -->|"8. Update Status COMPLETED"| DB
+    Client -->|"9. Poll Status via /api/v1/floor/draft"| API
+    API -->|"10. Read Active Version"| DB
+    DB -->|"11. Return SVG & Cost Curves"| Client
+    Client -->|"12. Render Vector Blueprint"| SVGCanvas
 ```
 
 ---
@@ -67,6 +100,8 @@ flowchart TD
 planora/
 ├── prisma/
 │   └── schema.prisma                  # PostgreSQL schema (User, Project, PlotConfig, Floor, FloorPlan, Rooms, BOQ)
+├── public/
+│   └── assets/                        # High-resolution architectural screenshots & CAD captures
 ├── src/
 │   ├── app/
 │   │   ├── (auth)/
@@ -96,7 +131,7 @@ planora/
 │   │   ├── ui/
 │   │   │   ├── not-authenticated.tsx  # High-tech CAD unauthorized access guard screen
 │   │   │   ├── accordion.tsx          # Accessible Radix/Shadcn accordion
-│   │   │   └── button.tsx             # Planaora custom-themed button primitives
+│   │   │   └── button.tsx             # Planora custom-themed button primitives
 │   │   └── navbar/                    # Navigation header with session status
 │   ├── lib/
 │   │   ├── auth.ts                    # NextAuth options, JWT callbacks & credentials validation
