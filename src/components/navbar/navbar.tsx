@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
-
+import Link from "next/link";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session, status } = useSession();
@@ -23,27 +23,35 @@ export default function Navbar() {
       {/* Top Bar */}
       <div className="flex justify-between items-center bg-slate-950 text-white shadow-lg shadow-slate-900 py-3 px-6 md:px-12 border-2 border-slate-900 rounded-2xl">
         {/* Brand Logo / Name */}
-        <div className="flex items-center space-x-2">
-          <span className="text-2xl font-bold font-playfair">Planora</span>
-        </div>
+        <Link href={"/"}>
+          <div className="flex items-center space-x-2">
+            <span className="text-2xl font-bold font-playfair">Planora</span>
+          </div>
+        </Link>
 
         {/* Desktop Navigation (Hidden on mobile, visible on md+) */}
         <div className="hidden md:flex items-center">
           <Menubar className="border-none bg-transparent gap-7 space-x-1">
             <MenubarMenu>
-              <MenubarTrigger className="px-4 py-2 text-slate-200 hover:text-white hover:bg-slate-900 rounded-xl transition-colors cursor-pointer">
-                About
-              </MenubarTrigger>
+              <Link href={"/about"}>
+                <MenubarTrigger className="px-4 py-2 text-slate-200 hover:text-white hover:bg-slate-900 rounded-xl transition-colors cursor-pointer">
+                  About
+                </MenubarTrigger>
+              </Link>
             </MenubarMenu>
             <MenubarMenu>
-              <MenubarTrigger className="px-4 py-2 text-slate-200 hover:text-white hover:bg-slate-900 rounded-xl transition-colors cursor-pointer">
-                Projects
-              </MenubarTrigger>
+              <Link href={"/projects"}>
+                <MenubarTrigger className="px-4 py-2 text-slate-200 hover:text-white hover:bg-slate-900 rounded-xl transition-colors cursor-pointer">
+                  Projects
+                </MenubarTrigger>
+              </Link>
             </MenubarMenu>
             <MenubarMenu>
-              <MenubarTrigger className="px-4 py-2 text-slate-200 hover:text-white hover:bg-slate-900 rounded-xl transition-colors cursor-pointer">
-                How It Works
-              </MenubarTrigger>
+              <Link href={"/how-it-works"}>
+                <MenubarTrigger className="px-4 py-2 text-slate-200 hover:text-white hover:bg-slate-900 rounded-xl transition-colors cursor-pointer">
+                  How It Works
+                </MenubarTrigger>
+              </Link>
             </MenubarMenu>
             <MenubarMenu>
               {/* Attached onClick directly to trigger to avoid nested <button> tags */}
@@ -74,21 +82,21 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden mt-2 bg-slate-950 border-2 border-slate-900 rounded-2xl p-4 shadow-lg shadow-slate-900 flex flex-col space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
           <a
-            href="#about"
+            href="/about"
             onClick={() => setIsOpen(false)}
             className="px-4 py-2 text-slate-200 hover:text-white hover:bg-slate-900 rounded-xl transition-colors text-left"
           >
             About
           </a>
           <a
-            href="#projects"
+            href="/projects"
             onClick={() => setIsOpen(false)}
             className="px-4 py-2 text-slate-200 hover:text-white hover:bg-slate-900 rounded-xl transition-colors text-left"
           >
             Projects
           </a>
           <a
-            href="#how-it-works"
+            href="/how-it-works"
             onClick={() => setIsOpen(false)}
             className="px-4 py-2 text-slate-200 hover:text-white hover:bg-slate-900 rounded-xl transition-colors text-left"
           >
