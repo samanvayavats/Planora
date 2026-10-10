@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { getProjectTotalFloors } from "@/services/project/project.service";
+
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          message: "Unauthorized. Please sign in.",
+        },
+        { status: 401 },
+      );
+    }
+
     const searchParams = request.nextUrl.searchParams;
 
     const projectId = searchParams.get("projectId");
