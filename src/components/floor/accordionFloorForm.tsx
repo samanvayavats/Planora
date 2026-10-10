@@ -37,7 +37,7 @@ import FloorPlanSvgBox from "./floorPlanSvgBox";
 // ============================================================
 // TYPES
 // ============================================================
-// ✅ Zero-dependency CUID2 generator (valid for Zod & Prisma)
+// CUID2 generator (valid for Zod & Prisma)
 const createId = (length = 24): string => {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
   let result = "c";
@@ -100,7 +100,7 @@ const DEFAULT_FLOOR_DATA: FloorRequirementsData = {
   floorNumber: 1,
   floorName: "Ground Floor",
 
-  versionId: "", // 👈 Clean default: generated dynamically via createId() on save
+  versionId: "", //Clean default: generated dynamically via createId() on save
   currentVersionId: "residential",
 
   asyncJobType: "get-draft",
