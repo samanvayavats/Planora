@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { GetDraftSchema } from "@/schema/v1/floor/floor.schema";
 import { pushTheFloorDraftInTheQueue } from "@/lib/redis";
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          message: "Unauthorized. Please sign in to queue blueprint generation.",
+        },
+        { status: 401 },
+      );
+    }
+
     const body = await request.json();
     const bodyValidation = GetDraftSchema.safeParse(body);
 
