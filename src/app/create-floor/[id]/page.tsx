@@ -1,14 +1,17 @@
 "use client";
 import AccordionFloorForm from "@/components/floor/accordionFloorForm";
 import { useEffect, useState, use } from "react";
+import { useSession } from "next-auth/react";
 import axios from "axios";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
+import NotAuthenticated from "@/components/ui/not-authenticated";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 const Page = ({ params }: PageProps) => {
+  const { data: session, status } = useSession();
   const { id } = use(params);
 
   // 1. Initialise state as a number (0) since the backend returns a count
@@ -16,18 +19,22 @@ const Page = ({ params }: PageProps) => {
   const [serverError, setServerError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     const getTotalFloors = async () => {
       try {
         const res = await axios.get(`/api/v1/project/total-floor?projectId=${id}`);
         if (!res) {
           throw new Error("No floor available");
         }
-        setServerError(null);
-
-        const count =
-          typeof res.data.data === "number" ? res.data.data : Number(res.data.data) || 0;
-        setTotalFloorCount(count);
+        if (isMounted) {
+          setServerError(null);
+          const count =
+            typeof res.data.data === "number" ? res.data.data : Number(res.data.data) || 0;
+          setTotalFloorCount(count);
+        }
       } catch (err: unknown) {
+        if (!isMounted) return;
         if (axios.isAxiosError(err)) {
           const serverMessage =
             err.response?.data?.message ||
@@ -42,8 +49,36 @@ const Page = ({ params }: PageProps) => {
       }
     };
 
-    if (id) getTotalFloors();
-  }, [id]);
+    if (id && status === "authenticated") {
+      void getTotalFloors();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, status]);
+
+  if (status === "loading") {
+    return (
+      <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6">
+        <div className="text-center space-y-3">
+          <Loader2 className="h-8 w-8 text-emerald-400 animate-spin mx-auto" />
+          <p className="text-xs text-slate-400 font-mono">Authenticating session...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (status === "unauthenticated" || !session) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+        <NotAuthenticated
+          title="Floor Generator Locked"
+          description="You must be signed in to configure architectural floor requirements and generate blueprints."
+        />
+      </main>
+    );
+  }
 
   return (
     <div>
