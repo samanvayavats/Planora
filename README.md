@@ -256,3 +256,7 @@ Visit [http://localhost:3000](http://localhost:3000) in your browser.
 ## 📜 License
 
 Distributed under the MIT License. Built with ❤️ for architects, engineers, and builders.
+
+## 🧑‍💻 Author
+
+Samanvaya vats
